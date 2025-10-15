@@ -1,0 +1,18 @@
+{
+    "manifest_version": 2,
+    "name": "copy_youtube_channelId",
+    "version": "1.1",
+
+    "permissions": [
+        "contextMenus",
+        "activeTab",
+        "clipboardWrite",
+        "https://www.youtube.com/*",
+        "webRequest",
+        "webRequestBlocking"
+    ],
+
+    "background": {
+        "scripts": ["event.js"]
+    }
+}
