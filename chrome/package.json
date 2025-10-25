@@ -1,0 +1,23 @@
+{
+  "name": "copy_youtube_ids",
+  "version": "1.0.0",
+  "description": "YouTube 上でチャンネル ID・動画 ID・プレイリスト ID をワンクリックでコピーできるブラウザ拡張です。右クリックメニュー（コンテキストメニュー）にコピー用のメニューを追加し、開いているページから ID を検出してクリップボードへ書き込みます。",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bonjinnorenka/copy_youtube_ids.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bonjinnorenka/copy_youtube_ids/issues"
+  },
+  "homepage": "https://github.com/bonjinnorenka/copy_youtube_ids#readme",
+  "dependencies": {
+    "dompurify": "3.1.6"
+  }
+}

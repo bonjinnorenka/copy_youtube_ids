@@ -58,6 +58,13 @@ async function handleMenuClick(menuItemId, tabId) {
 
 async function executeCopy(tabId, func) {
     try {
+        // DOMPurify を先に注入
+        await chrome.scripting.executeScript({
+            target: { tabId },
+            files: ["node_modules/dompurify/dist/purify.min.js"],
+            world: "MAIN"
+        });
+
         const [result] = await chrome.scripting.executeScript({
             target: { tabId },
             func,
@@ -73,22 +80,51 @@ async function executeCopy(tabId, func) {
 }
 
 async function copyChannelIdFromPage() {
+
+    const isUC = (id) => /^UC[0-9A-Za-z_-]{22}$/.test(id);
+
     const readChannelId = async() => {
-        const current_url = window.location.href;
-        const current_fetch_result = await fetch(current_url);
-        if(current_fetch_result.ok){
-            const current_doc = await current_fetch_result.text();
-            const current_doc_dom = new DOMParser().parseFromString(current_doc, "text/html");
-            const elems = current_doc_dom.querySelector('meta[property="og:url"]')?.content ?? null;
-            if(elems){
-                const channelId = elems.match(/channel\/([A-Za-z0-9_-]+)/)[1];
-                return channelId;
+        try {
+            const res = await fetch(window.location.href, { credentials: "same-origin" });
+            if (res.ok) {
+                const html = await res.text();
+                
+                // DOMPurify でサニタイズ
+                let sanitizedHtml = html;
+                if (window && window.DOMPurify) {
+                    sanitizedHtml = window.DOMPurify.sanitize(html, {
+                        WHOLE_DOCUMENT: true,
+                        RETURN_TRUSTED_TYPE: true,
+                        RETURN_DOM: false,
+                        KEEP_CONTENT: true,
+                        ALLOWED_TAGS: ['html','head','meta'],
+                        ALLOWED_ATTR: ['property','content'],
+                        ADD_ATTR: ['property','content'],
+                        ADD_URI_SAFE_ATTR: ['property']
+                    });
+                }
+                // console.log(sanitizedHtml)
+                const doc = new DOMParser().parseFromString(sanitizedHtml, "text/html");
+                const og = doc.querySelector('meta[property="og:url"]')?.content ?? "";
+                // console.log("og: " + og)
+                let m = og.match(/channel\/(UC[0-9A-Za-z_-]{22})/);
+                // console.log("m: " + m[1])
+                if (m && isUC(m[1])) return m[1];
+                const canon = doc.querySelector('link[rel="canonical"]')?.href ?? "";
+                // console.log("canon: " + canon)
+                m = canon.match(/channel\/(UC[0-9A-Za-z_-]{22})/);
+                // console.log("m: " + m[1])
+                if (m && isUC(m[1])) return m[1];
             }
-        }
+        } catch {}
+
         return null;
     };
 
     const channelId = await readChannelId();
+
+    console.log("channelId: " + channelId)
+
     if (!channelId) {
         return { success: false, message: "Channel ID を検出できませんでした。" };
     }
