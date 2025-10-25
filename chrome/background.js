@@ -20,7 +20,7 @@ chrome.runtime.onInstalled.addListener(() => {
     id: MENU_IDS.video,
     title: "クリックでVideoidを取得",
     contexts: ["page"],
-    documentUrlPatterns: ["https://www.youtube.com/watch*"]
+    documentUrlPatterns: ["https://www.youtube.com/watch*","https://www.youtube.com/shorts/*","https://www.youtube.com/live/*"]
   });
   chrome.contextMenus.create({
     id: MENU_IDS.playlist,
