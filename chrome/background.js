@@ -73,44 +73,22 @@ async function executeCopy(tabId, func) {
 }
 
 async function copyChannelIdFromPage() {
-    const readChannelId = () => {
-        const byMetaItemprop =
-            document.querySelector('meta[itemprop="channelId"]')?.content ?? null;
-        if (byMetaItemprop) {
-            return byMetaItemprop;
-        }
-
-        const ytcfg = (window.ytcfg && typeof window.ytcfg.get === "function")
-            ? window.ytcfg.get("CHANNEL_ID")
-            : null;
-        if (ytcfg) {
-            return ytcfg;
-        }
-
-        const urlCandidates = [
-            document.querySelector('meta[property="og:url"]')?.content ?? "",
-            document.querySelector('link[rel="canonical"]')?.href ?? "",
-            window.location.href
-        ];
-
-        for (const candidate of urlCandidates) {
-            const match = candidate.match(/\/channel\/([A-Za-z0-9_-]+)/);
-            if (match) {
-                return match[1];
+    const readChannelId = async() => {
+        const current_url = window.location.href;
+        const current_fetch_result = await fetch(current_url);
+        if(current_fetch_result.ok){
+            const current_doc = await current_fetch_result.text();
+            const current_doc_dom = new DOMParser().parseFromString(current_doc, "text/html");
+            const elems = current_doc_dom.querySelector('meta[property="og:url"]')?.content ?? null;
+            if(elems){
+                const channelId = elems.match(/channel\/([A-Za-z0-9_-]+)/)[1];
+                return channelId;
             }
         }
-
-        const scriptMatch = document.documentElement.innerHTML.match(
-            /"channelId":"(UC[0-9A-Za-z_-]{22})"/
-        );
-        if (scriptMatch) {
-            return scriptMatch[1];
-        }
-
         return null;
     };
 
-    const channelId = readChannelId();
+    const channelId = await readChannelId();
     if (!channelId) {
         return { success: false, message: "Channel ID を検出できませんでした。" };
     }
